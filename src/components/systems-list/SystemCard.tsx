@@ -17,7 +17,7 @@ export function SystemCard({ system, onChangeSystem }: { system: System, onChang
   }
 
   return (
-    <Card mb={8}>
+    <Card w='100%'>
       <CardHeader>
         <Heading as="h2" size="lg"> {system.name} </Heading>
       </CardHeader>

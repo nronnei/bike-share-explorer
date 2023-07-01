@@ -1,5 +1,5 @@
 import React, { Suspense, useState } from "react";
-import { Heading, Text } from '@chakra-ui/react';
+import { Heading, Text, VStack } from '@chakra-ui/react';
 import { useInjection } from '../context/injection';
 import { SystemDetails } from './SystemDetails';
 import { SystemCard } from './systems-list/SystemCard';
@@ -11,11 +11,15 @@ function SystemsList({ onChangeSystem }: { onChangeSystem: () => void }) {
   const systems = systemService.getSystems();
 
   return <>
-    <Heading as="h1">Systems</Heading>
-    {systems.map((system, i) => <SystemCard
-      key={system.system_id}
-      {...{ onChangeSystem, system }}
-    />)}
+    <Heading as="h1" my={8}>Systems</Heading>
+    <VStack spacing={8} w='100%'>
+      {systems.map((system) => (
+        <SystemCard
+          key={system.system_id}
+          {...{ onChangeSystem, system }}
+        />
+      ))}
+    </VStack>
   </>
 }
 

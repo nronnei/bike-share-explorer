@@ -15,7 +15,6 @@ export function Sidebar(props: SidebarProps) {
       transition={{ type: 'tween', duration: 0.3 }}
     >
       <Container
-        bg='red.100'
         h="100vh"
         whiteSpace="nowrap"
         overflowX="hidden"
