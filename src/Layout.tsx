@@ -45,7 +45,14 @@ export const Layout = () => {
 
   return (
     <Flex>
-      <AppBar buttonConfigs={buttonConfigs} w={APP_BAR_WIDTH_DESKTOP} flexShrink={0} />
+      <AppBar
+        buttonConfigs={buttonConfigs}
+        w={APP_BAR_WIDTH_DESKTOP}
+        flexShrink={0}
+        py={4}
+        bg={colorMode === 'light' ? 'blue.100' : 'background'}
+        shadow='md'
+      />
       <Sidebar {...disclosureProps}>
         <SidebarContent />
       </Sidebar>

@@ -19,6 +19,7 @@ export function Sidebar(props: SidebarProps) {
         whiteSpace="nowrap"
         overflowX="hidden"
         overflowY="auto"
+        p={8}
       >
         {children}
       </Container>
