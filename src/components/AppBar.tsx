@@ -1,37 +1,35 @@
 import React from "react";
-import { Box, VStack, Text, ButtonGroup, IconButton, useDisclosure } from "@chakra-ui/react";
+import { Box, VStack, Image, IconButton, UseDisclosureReturn, ChakraProps, IconButtonProps } from "@chakra-ui/react";
 import { GlobeIcon, MapIcon, MenuIcon, SearchIcon } from "./icons";
 
-export const AppBar = (props: { buttonProps: any, [key: string]: any }) => {
+export type AppBarButtonConfig = {
+  label: string,
+  buttonProps: ReturnType<UseDisclosureReturn['getButtonProps']>,
+  icon: IconButtonProps['icon']
+};
 
-  // const handleClick = () => {
-  //   console.log('click!');
-  // }
+type AppBarProps = {
+  buttonConfigs: AppBarButtonConfig[]
+} & ChakraProps
 
+export const AppBar = ({ buttonConfigs, ...chakraProps }: AppBarProps) => {
   return (
-    <Box bg="silver" h="100vh">
+    <Box {...chakraProps}>
       <VStack spacing={8} justifyContent="center">
-        <Text> Vantage </Text>
-        <IconButton
-          aria-label="Open Sidebar"
-          icon={<MenuIcon />}
-          {...props.buttonProps}
+        <Image
+          src='./vantage_logo.png'
+          maxW='100%'
+          w='100%'
         />
-        <IconButton
-          aria-label="View Map"
-          icon={<MapIcon />}
-          {...props.buttonProps}
-        />
-        <IconButton
-          aria-label="Search Stations"
-          icon={<SearchIcon />}
-          {...props.buttonProps}
-        />
-        <IconButton
-          aria-label="View Global Systems"
-          icon={<GlobeIcon />}
-          {...props.buttonProps}
-        />
+
+        {buttonConfigs.map(({ label, ...props }, i) => (
+          <IconButton
+            key={i}
+            aria-label={label}
+            title={label}
+            {...props}
+          />
+        ))}
       </VStack>
     </Box>
   )
