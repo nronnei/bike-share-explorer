@@ -184,7 +184,7 @@ export class LeafletMapService implements IMapService {
         pointToLayer: (point, latlng) => {
           return L.circleMarker(latlng);
         },
-        style: { color: "#000", weight: 5 }
+        style: { color: "var(--chakra-colors-red-500)", weight: 5 }
       });
     } catch (error) {
       console.error('[createGeoJSONLayer]', error)
