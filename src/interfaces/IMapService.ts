@@ -1,13 +1,12 @@
+import { Feature } from 'geojson';
 import {
-  MapServiceEvent,
-  MapServiceEventHandler,
-  MapServiceEventType,
+  MapServiceEventEmitter,
   MapServicePoint,
   MapServiceViewpoint
 } from "../types/Events";
 import { VGeoJSONLayer, VLayer, VTileLayer } from "../types/Layer";
 
-export interface IMapService {
+export interface IMapService extends MapServiceEventEmitter {
   /**
    * Registers the global map object that the service will target.
    * @param container The ID of an element to use as the map container, or the element itself.
@@ -58,26 +57,16 @@ export interface IMapService {
   setLayerOpacity: ({ id, opacity }: Pick<VLayer, "opacity" | "id">) => void
 
   /**
-   * Registers a listener for a MapServiceEvent
-   * @param eventName Name of the event to listen for.
-   * @param serviceEventHandler Event handler function.
-   * @returns A function to de-register the event handler.
-   */
-  on: (eventName: MapServiceEventType, serviceEventHandler: MapServiceEventHandler) => Function
-
-  /**
-   * De-registers all event listeners for the target event.
-   * @param eventName Name of the event to remove listeners for.
-   * @returns void
-   */
-  off: (eventName: MapServiceEventType) => void
-
-  emit: <T extends MapServiceEvent>(eventName: MapServiceEventType, event: T) => void
-
-  /**
    * Switch the map view to the supplied viewpoint
    * @param viewpoint The viewpoint to fly to.
    * @returns void
    */
   goTo: (viewpoint: MapServiceViewpoint | MapServicePoint) => void
+
+  /**
+   * Given a pair of coordinates, query all map layers for features that intersect.
+   * @param mapPoint Coordinates to query on
+   * @returns An array of clicked features
+   */
+  queryFeatures: (mapPoint: [x: number, y: number]) => Feature[]
 }

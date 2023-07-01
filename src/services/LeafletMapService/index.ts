@@ -7,9 +7,11 @@ import L, {
 } from "leaflet";
 import {
   ClickEvent,
+  EventHandlerHash,
   HoverEvent,
   MapServiceEvent,
   MapServiceEventHandler,
+  MapServiceEventMap,
   MapServiceEventType,
   MapServicePoint,
   MapServiceViewpoint,
@@ -24,7 +26,7 @@ import { LeafletTileLayer } from './types';
 export class LeafletMapService implements IMapService {
   private _map!: LeafletMap;
   private _layerCache = new Map();
-  private _listeners: Record<MapServiceEventType, MapServiceEventHandler[]> = {
+  private _listeners: EventHandlerHash = {
     click: [],
     movestart: [],
     moveend: [],
@@ -129,32 +131,31 @@ export class LeafletMapService implements IMapService {
     this.setLayerOpacity({ id, opacity });
   };
 
-  on(eventName: MapServiceEventType, serviceEventHandler: MapServiceEventHandler) {
+  on<E extends keyof MapServiceEventMap>(eventName: E, serviceEventHandler: MapServiceEventHandler<E>) {
     this._listeners[eventName].push(serviceEventHandler);
     return () => {
-      this._listeners[eventName] = this._listeners[eventName].filter((fn) => {
-        return fn !== serviceEventHandler;
-      })
+      const idx = this._listeners[eventName].findIndex((fn) => fn === serviceEventHandler);
+      if (idx !== -1) {
+        this._listeners[eventName].splice(idx, 1);
+      }
     }
   };
 
-  off(eventName: MapServiceEventType) {
+  off<E extends keyof MapServiceEventMap>(eventName: E) {
     this._listeners[eventName] = [];
   };
+
+
+  emit<E extends keyof MapServiceEventMap>(eventName: E, event: MapServiceEventMap[E]): void {
+    this._listeners[eventName].forEach((handler) => handler(event));
+  }
+
 
   goTo(viewpoint: MapServiceViewpoint | MapServicePoint): void {
     const flyToOpts: LatLngExpression = viewpoint.center ?? viewpoint
     if (viewpoint.scale) flyToOpts.zoom = viewpoint.scale;
     this._map.flyTo(flyToOpts);
   };
-
-  emit(eventName: MapServiceEventType, event: HoverEvent): void
-  emit(eventName: MapServiceEventType, event: MoveStartEvent): void
-  emit(eventName: MapServiceEventType, event: MoveEndEvent): void
-  emit(eventName: MapServiceEventType, event: ClickEvent): void
-  emit(eventName: MapServiceEventType, event: MapServiceEvent): void {
-    this._listeners[eventName].forEach((handler) => handler(event));
-  }
 
   private createLayer(layerConfig: VTileLayer | VGeoJSONLayer) {
     const possibleError = ReferenceError(`Layer type "${layerConfig.type}" not supported.`);
