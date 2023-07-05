@@ -17,6 +17,7 @@ import { LeafletTileLayer } from './types';
 import { Feature, Geometry, GeoJsonProperties, Position } from 'geojson';
 import makeCircle from '@turf/circle';
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
+import booleanIntersects from '@turf/boolean-intersects';
 
 
 export class LeafletMapService implements IMapService {
@@ -136,16 +137,18 @@ export class LeafletMapService implements IMapService {
     const radius = (mapHeightInMetres / mapHeightInPixels) * 20;
     const circle = makeCircle(mapPoint, radius / 1000);
 
-    // @TODO: get rid of some of these nested if statements ASAP
     this._map.eachLayer((layer) => {
+      // We can only query features within FeatureGroups
       if (layer instanceof FeatureGroup) {
-        layer.eachLayer((featureLayer) => {
-          if (featureLayer.feature?.type === 'Feature') {
-            const feature = featureLayer.feature as Feature;
-            if (feature.geometry?.type === 'Point' && booleanPointInPolygon(feature.geometry, circle)) {
-              results.push(feature);
-            }
-          }
+        const fc = layer.toGeoJSON();
+        let features: Feature[] = [];
+        if (fc.type === 'Feature') features = [fc];
+        else if (fc.type === 'FeatureCollection') features = fc.features;
+        // @TODO: add support for GeometryCollection
+        results = features.filter((feature) => {
+          console.log('intersects', booleanIntersects(circle, feature));
+
+          return booleanIntersects(circle, feature);
         });
       }
     });
