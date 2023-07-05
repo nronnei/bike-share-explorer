@@ -4,23 +4,22 @@ import L, {
   LeafletEvent,
   LeafletMouseEvent,
   LatLngExpression,
+  FeatureGroup,
+  GeoJSON,
 } from "leaflet";
 import {
-  ClickEvent,
   EventHandlerHash,
-  HoverEvent,
-  MapServiceEvent,
   MapServiceEventHandler,
   MapServiceEventMap,
-  MapServiceEventType,
   MapServicePoint,
   MapServiceViewpoint,
-  MoveEndEvent,
-  MoveStartEvent
 } from "../../types/Events";
 import { VGeoJSONLayer, VLayer, VTileLayer } from "../../types/Layer";
 import { IMapService } from "../../interfaces/IMapService";
 import { LeafletTileLayer } from './types';
+import { Feature, Geometry, GeoJsonProperties } from 'geojson';
+import makeCircle from '@turf/circle';
+import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 
 
 export class LeafletMapService implements IMapService {
@@ -131,6 +130,34 @@ export class LeafletMapService implements IMapService {
     this.setLayerOpacity({ id, opacity });
   };
 
+  queryFeatures(mapPoint: [x: number, y: number]): Feature<Geometry, GeoJsonProperties>[] {
+    let results: Feature[] = [];
+
+    const southEastPoint = this._map.getBounds().getSouthEast();
+    const northEastPoint = this._map.getBounds().getNorthEast();
+    const mapHeightInMetres = southEastPoint.distanceTo(northEastPoint);
+    const mapHeightInPixels = this._map.getSize().y;
+    const radius = (mapHeightInMetres / mapHeightInPixels) * 20;
+    const circle = makeCircle(mapPoint, radius / 1000);
+
+    // @TODO: get rid of some of these nested if statements ASAP
+    this._map.eachLayer((layer) => {
+      if (layer instanceof FeatureGroup) {
+        layer.eachLayer((featureLayer) => {
+          if (featureLayer.feature?.type === 'Feature') {
+            const feature = featureLayer.feature as Feature;
+            if (feature.geometry?.type === 'Point' && booleanPointInPolygon(feature.geometry, circle)) {
+              results.push(feature);
+            }
+          }
+        });
+      }
+    });
+    console.log('results', results);
+
+    return results
+  }
+
   on<E extends keyof MapServiceEventMap>(eventName: E, serviceEventHandler: MapServiceEventHandler<E>) {
     this._listeners[eventName].push(serviceEventHandler);
     return () => {
@@ -185,7 +212,7 @@ export class LeafletMapService implements IMapService {
         pointToLayer: (point, latlng) => {
           return L.circleMarker(latlng);
         },
-        style: { color: "var(--chakra-colors-red-500)", weight: 5 }
+        style: { color: "var(--chakra-colors-red-500)", weight: 5 },
       });
     } catch (error) {
       console.error('[createGeoJSONLayer]', error)
