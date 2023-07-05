@@ -1,4 +1,6 @@
+import { Point } from 'geojson';
 import { SRID } from "./SRS";
+import { Position } from 'geojson';
 
 /**
  * The custom events we need to support on MapService implementations.
@@ -12,51 +14,39 @@ export enum MapServiceEventType {
 };
 
 /**
- * The coordinates defining a point on the map.
- */
-export type MapServicePoint = { lng: number, lat: number }
-
-/**
  * Defines a map viewpoint using a center point and a scale.
  */
 export type MapServiceViewpoint = {
-  center: MapServicePoint,
+  center: Position,
   scale: number,
-  srid?: SRID
 }
-
 
 export type MapServiceEvent = {
-  type: MapServiceEventType,
+  /**
+   * The event emitted by the underlying map library.
+   */
   libEvent: object,
+  /**
+   * Longitude where the event occurred. For map move events, corresponds to the
+   * center of the viewport.
+   */
+  lng: number,
+  /**
+   * Latitude where the event occurred. For map move events, corresponds to the
+   * center of the viewport.
+   */
+  lat: number,
 }
 
-export interface MoveStartEvent extends MapServiceEvent, MapServicePoint {
-  type: MapServiceEventType.MoveStart,
-}
-
-export interface MoveEndEvent extends MapServiceEvent, MapServicePoint {
-  type: MapServiceEventType.MoveEnd,
-}
-
-export interface ClickEvent extends MapServiceEvent, MapServicePoint {
-  type: MapServiceEventType.Click,
-}
-
-export interface MouseOverEvent extends MapServiceEvent, MapServicePoint {
-  type: MapServiceEventType.MouseOver,
-}
-
-export interface HoverEvent extends MapServiceEvent, MapServicePoint {
-  type: MapServiceEventType.Hover,
-}
+export interface MapMouseEvent extends MapServiceEvent { };
+export interface MapMoveEvent extends MapServiceEvent { };
 
 export type MapServiceEventMap = {
-  'movestart': MoveStartEvent,
-  'moveend': MoveEndEvent,
-  'click': ClickEvent,
-  'mouseover': MouseOverEvent,
-  'hover': HoverEvent,
+  'movestart': MapMoveEvent,
+  'moveend': MapMoveEvent,
+  'click': MapMouseEvent,
+  'mouseover': MapMouseEvent,
+  'hover': MapMouseEvent,
 }
 
 export type MapServiceEventHandler<T extends keyof MapServiceEventMap> = (event: MapServiceEventMap[T]) => void

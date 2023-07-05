@@ -1,9 +1,5 @@
 import { Feature } from 'geojson';
-import {
-  MapServiceEventEmitter,
-  MapServicePoint,
-  MapServiceViewpoint
-} from "../types/Events";
+import { MapServiceEventEmitter, MapServiceViewpoint } from "../types/Events";
 import { VGeoJSONLayer, VLayer, VTileLayer } from "../types/Layer";
 
 export interface IMapService extends MapServiceEventEmitter {
@@ -61,7 +57,7 @@ export interface IMapService extends MapServiceEventEmitter {
    * @param viewpoint The viewpoint to fly to.
    * @returns void
    */
-  goTo: (viewpoint: MapServiceViewpoint | MapServicePoint) => void
+  goTo: (viewpoint: MapServiceViewpoint) => void
 
   /**
    * Given a pair of coordinates, query all map layers for features that intersect.

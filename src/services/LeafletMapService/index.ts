@@ -3,21 +3,18 @@ import L, {
   Map as LeafletMap,
   LeafletEvent,
   LeafletMouseEvent,
-  LatLngExpression,
   FeatureGroup,
-  GeoJSON,
 } from "leaflet";
 import {
   EventHandlerHash,
   MapServiceEventHandler,
   MapServiceEventMap,
-  MapServicePoint,
   MapServiceViewpoint,
 } from "../../types/Events";
 import { VGeoJSONLayer, VLayer, VTileLayer } from "../../types/Layer";
 import { IMapService } from "../../interfaces/IMapService";
 import { LeafletTileLayer } from './types';
-import { Feature, Geometry, GeoJsonProperties } from 'geojson';
+import { Feature, Geometry, GeoJsonProperties, Position } from 'geojson';
 import makeCircle from '@turf/circle';
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 
@@ -61,17 +58,17 @@ export class LeafletMapService implements IMapService {
 
     this._map.on('movestart', (evt: LeafletEvent) => {
       const { lat, lng } = self._map.getCenter();
-      self.emit('movestart', { type: 'movestart', libEvent: evt, lng, lat })
+      self.emit('movestart', { libEvent: evt, lng, lat })
     })
 
     this._map.on('moveend', (evt: LeafletEvent) => {
       const { lat, lng } = self._map.getCenter();
-      self.emit('moveend', { type: 'moveend', libEvent: evt, lng, lat })
+      self.emit('moveend', { libEvent: evt, lng, lat })
     })
 
     this._map.on('click', (evt: LeafletMouseEvent) => {
       const { lat, lng } = evt.latlng;
-      self.emit('click', { type: 'click', libEvent: evt, lng, lat })
+      self.emit('click', { libEvent: evt, lng, lat })
     })
   };
 
@@ -79,7 +76,6 @@ export class LeafletMapService implements IMapService {
     try {
       if (this._layerCache.has(layer.id)) return;
       const leafletLayer = this.createLayer(layer);
-      console.log('tlayer', leafletLayer)
       this._layerCache.set(layer.id, leafletLayer);
       leafletLayer.addTo(this._map);
     } catch (error) {
@@ -178,10 +174,17 @@ export class LeafletMapService implements IMapService {
   }
 
 
-  goTo(viewpoint: MapServiceViewpoint | MapServicePoint): void {
-    const flyToOpts: LatLngExpression = viewpoint.center ?? viewpoint
-    if (viewpoint.scale) flyToOpts.zoom = viewpoint.scale;
-    this._map.flyTo(flyToOpts);
+  goTo(viewpoint: MapServiceViewpoint | Position): void {
+    if (Array.isArray(viewpoint)) {
+      const [x, y] = viewpoint;
+      // Leaflet's backwards coordinates 🙄
+      this._map.flyTo([y, x]);
+    } else {
+      const [x, y] = viewpoint.center;
+      const zoom = viewpoint.scale;
+      // Leaflet's backwards coordinates 🙄
+      this._map.flyTo([y, x], zoom);
+    }
   };
 
   private createLayer(layerConfig: VTileLayer | VGeoJSONLayer) {
@@ -202,7 +205,8 @@ export class LeafletMapService implements IMapService {
       const tLayer = L.tileLayer(url, { attribution, subdomains, minZoom, maxZoom });
       return tLayer;
     } catch (error) {
-      console.error('[createTileLayer]', error)
+      console.error('[createTileLayer]', error);
+      throw error;
     }
   }
 
@@ -215,7 +219,8 @@ export class LeafletMapService implements IMapService {
         style: { color: "var(--chakra-colors-red-500)", weight: 5 },
       });
     } catch (error) {
-      console.error('[createGeoJSONLayer]', error)
+      console.error('[createGeoJSONLayer]', error);
+      throw error;
     }
   }
 }
