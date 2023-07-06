@@ -9,7 +9,7 @@ import { GlobeIcon, MapIcon, MenuIcon, SearchIcon } from './components/icons';
 const APP_BAR_WIDTH_DESKTOP = 16;
 
 export const Layout = () => {
-  const { getDisclosureProps, getButtonProps, isOpen } = useDisclosure();
+  const { getDisclosureProps, getButtonProps, isOpen } = useDisclosure({ defaultIsOpen: true });
   const disclosureProps = getDisclosureProps({ isOpen });
   const { colorMode, toggleColorMode } = useColorMode();
   const modeToToggle = colorMode === 'light' ? 'Dark' : 'Light';

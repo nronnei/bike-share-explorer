@@ -20,6 +20,7 @@ export function Sidebar(props: SidebarProps) {
         overflowX="hidden"
         overflowY="auto"
         p={8}
+        w='60ch'
       >
         {children}
       </Container>
