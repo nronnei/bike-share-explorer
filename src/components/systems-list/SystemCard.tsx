@@ -1,19 +1,16 @@
 import { Button, Card, CardBody, CardFooter, CardHeader, Heading, Text, } from '@chakra-ui/react';
 import React from 'react';
-import { useInjection } from '../../context/injection';
 import { System } from '../../types';
 
+export type SystemCardProps = {
+  system: System,
+  onSetSystem: (system: System) => void
+};
 
-export function SystemCard({ system, onChangeSystem }: { system: System, onChangeSystem: () => void }) {
-  const { systemService, stationService } = useInjection();
-
-  const loadSystem = systemService.useLoadSystem();
-  const loadStations = stationService.useLoadStations();
+export function SystemCard({ system, onSetSystem: onChangeSystem }: SystemCardProps) {
 
   const handleClick = async () => {
-    await loadSystem(system);
-    await loadStations();
-    onChangeSystem();
+    onChangeSystem(system);
   }
 
   return (

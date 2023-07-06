@@ -15,9 +15,10 @@ export function createSystemService(deps: CreateSystemServiceDeps) {
       const setSelected = repo.useSetSelectedSystem();
       return async (system?: System | undefined) => {
         await client.loadSystemData(system);
-        if (system) setSelected(system);
+        if (system) setSelected(system.system_id);
       };
     },
+    useSystem: (id) => repo.useSystemValue(id),
     useSystemInfo: (id) => repo.useSystemInformationValue(id),
     useSystemVehicleTypes: (id) => repo.useSystemVehicleTypesValue(id),
     getSystems: () => repo.useSystemsValue()

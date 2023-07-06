@@ -1,4 +1,4 @@
-import { atom, selector, selectorFamily } from 'recoil';
+import { DefaultValue, atom, selector, selectorFamily } from 'recoil';
 import { NotFoundError } from '../../errors';
 import { System } from '../../types';
 import { RecoilGbfsRepoOptions } from './interface';
@@ -12,24 +12,39 @@ export function createSystemsState({ client, logger }: RecoilGbfsRepoOptions) {
     get: async () => {
       const systems = await client.getSystems();
       // GBFS System IDs don't need to be random 🙃 we're gonna fix that.
-      systems.forEach(s => s.system_id = window.crypto.randomUUID());
+      systems.forEach((s, i) => s.system_id = i.toString());
+      // systems.forEach((s, i) => s.system_id = window.crypto.randomUUID());
       return systems;
     }
   });
 
-  const selectedSystem = atom({
-    key: 'selectedSystem',
+  const selectedSystemId = atom({
+    key: 'selectedSystemId',
     default: (() => {
       try {
-        return client.getSystem();
+        return client.getSystem().system_id;
       } catch (error) {
         if (error instanceof NotFoundError) {
           logger.warn(`${logTag}selectedSystemDefault: no system found`);
-          return {} as System;
+          return '';
         }
         throw error;
       }
     })(),
+  });
+
+  const selectedSystem = selector({
+    key: 'selectedSystem',
+    get: async ({ get }) => await get(selectedSystemId),
+    set: async ({ get, set }, newId) => {
+      if (!(newId instanceof DefaultValue)) {
+        const systems = await get(getAllSystems);
+        const newSystem = systems.find(s => s.system_id === newId);
+        if (!newSystem) throw new NotFoundError(`System ${newId} is not available.`);
+        await client.loadSystemData(newSystem);
+        set(selectedSystemId, newId);
+      }
+    }
   });
 
   const availableSystemsIdx = selector({
@@ -56,7 +71,13 @@ export function createSystemsState({ client, logger }: RecoilGbfsRepoOptions) {
 
   const systemInformation = selectorFamily({
     key: 'systemInformation',
-    get: (id: System["system_id"]) => async () => {
+    get: (id: System["system_id"]) => async ({ get }) => {
+      // here to listen for changes
+      const selectedId = await get(selectedSystemId);
+      if (id !== selectedId) {
+        const newSystem = (await get(getAllSystems)).find(s => s.system_id === id)
+        await client.loadSystemData(newSystem)
+      }
       const systemInfo = await client.getSystemInformation();
       return systemInfo.data;
     }

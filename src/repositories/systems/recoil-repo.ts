@@ -1,4 +1,4 @@
-import { useRecoilCallback, useRecoilState, useRecoilValue } from 'recoil';
+import { useRecoilCallback, useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import { System } from '../../types';
 import { CreateGbfsRepoDeps } from '../types';
 import { IGbfsSystemRepo } from './interface';
@@ -18,10 +18,7 @@ export function createSystemRepo(opts: CreateGbfsRepoDeps): IGbfsSystemRepo {
      * @returns
      */
     useSetSelectedSystem() {
-      return useRecoilCallback(({ set }) => async (system: System) => {
-        client.setSystem(system);
-        set(state.selectedSystem, system);
-      });
+      return useSetRecoilState(state.selectedSystem)
     },
 
     useSelectedSystemState() {
