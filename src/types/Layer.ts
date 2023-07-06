@@ -16,6 +16,9 @@ export type VGeoJSONLayer = VLayerConfig & {
 export type VTileLayer = VLayerConfig & {
   type: "tile",
   url: string,
+  subdomains?: string,
+  minZoom?: number,
+  maxZoom?: number,
 }
 
 export type VLayer = (VGeoJSONLayer | VTileLayer);

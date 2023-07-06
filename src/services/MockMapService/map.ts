@@ -1,9 +1,10 @@
 type SupportedEvents = Pick<HTMLElementEventMap, 'click' | 'mouseover'>
+type EventHandler<T extends Event> = (evt: T) => any;
 
 export class MockMap {
 
   private _map: HTMLElement;
-  private _listeners: Record<keyof SupportedEvents, EventListener[]> = {
+  private _listeners: { [E in keyof SupportedEvents]: EventHandler<SupportedEvents[E]>[] } = {
     click: [],
     mouseover: [],
   }
@@ -14,12 +15,12 @@ export class MockMap {
     else this._map = container
   }
 
-  on(eventName: keyof SupportedEvents, eventHandler: EventListener): void {
+  on<E extends keyof SupportedEvents>(eventName: E, eventHandler: EventHandler<SupportedEvents[E]>): void {
     this._map.addEventListener(eventName, eventHandler);
     this._listeners[eventName].push(eventHandler);
   }
 
-  off(eventName: 'click' | 'mouseover'): void {
+  off<E extends keyof SupportedEvents>(eventName: E): void {
     this._listeners[eventName].forEach(l => this._map.removeEventListener(eventName, l));
   }
 
